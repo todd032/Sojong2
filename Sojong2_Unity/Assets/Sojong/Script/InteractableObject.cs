@@ -5,6 +5,8 @@ using UnityEngine;
 public class InteractableObject : MonoBehaviour {
 
     public bool Focused = false;
+    public bool Shrink = false;
+    protected Vector3 StartSize;
     public GameObject FocusedObject;
 
     private void Awake()
@@ -18,8 +20,9 @@ public class InteractableObject : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-		
-	}
+        StartSize = transform.localScale;
+
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -28,8 +31,16 @@ public class InteractableObject : MonoBehaviour {
             FocusedObject.SetActive(Focused);
             if(Focused)
             {
-                FocusedObject.GetComponent<ParticleSystem>().Play();
-                
+                FocusedObject.GetComponent<ParticleSystem>().Play();                
+            }
+
+            if (Shrink) {
+                if (!Focused) {
+                    transform.localScale = StartSize * 0.8f;
+                }
+                else {
+                    transform.localScale = StartSize;
+                }
             }
         }
     }
@@ -42,7 +53,8 @@ public class InteractableObject : MonoBehaviour {
 
     private void OnDisable()
     {
-        InteractableManager.Instance.SetToInactive(this);
+        if(InteractableManager.Instance != null)
+            InteractableManager.Instance.SetToInactive(this);
     }
 
     public List<InteractableObject> LinkedObject = new List<InteractableObject>();
@@ -56,7 +68,7 @@ public class InteractableObject : MonoBehaviour {
         LinkedObject.Add(_obj);
     }
 
-    public void OnClick()
+    public virtual void OnClick()
     {
         StartCoroutine(BumpAnim());
     }

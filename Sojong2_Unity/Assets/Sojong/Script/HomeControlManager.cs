@@ -47,6 +47,9 @@ public class HomeControlManager : MonoBehaviour{
     }
 
     public InteractableObject FocusedObject;
+
+    protected float AutoUIDisappearTime = 10f;
+    protected float AutoUIDisappearTimer = 0f;
     private void Update()
     {
         if(FocusedObject == null)
@@ -59,6 +62,23 @@ public class HomeControlManager : MonoBehaviour{
                 InteractableManager.Instance.ShowCurrentSelectedUI(FocusedObject);
             }
         }
+        if(AutoUIDisappearTimer > 0f) {
+            AutoUIDisappearTimer -= Time.deltaTime;
+            if(AutoUIDisappearTimer < 0f) {
+                UIManager.Instance.HideAll();
+                //check if focused object is inactive
+                if(!FocusedObject.gameObject.active) {
+                    FocusedObject.Focused = false;
+                    FocusedObject = null;
+                    if (InteractableManager.Instance.ActiveObjectList.Count != 0) {
+                        InteractableManager.Instance.UpdateObjectsLink();
+                        FocusedObject = InteractableManager.Instance.ActiveObjectList[0];
+                        FocusedObject.Focused = true;
+                        InteractableManager.Instance.ShowCurrentSelectedUI(FocusedObject);
+                    }
+                }
+            }            
+        }
     }
 
     public void UIChangeEvent()
@@ -69,8 +89,10 @@ public class HomeControlManager : MonoBehaviour{
 
     public void ChangeFocus(InteractableObject _obj)
     {
+        Debug.Log("Change focus called");
         FocusedObject.Focused = false;
         FocusedObject = _obj;
+        FocusedObject.Focused = true;
         InteractableManager.Instance.ShowCurrentSelectedUI(FocusedObject);
     }
 
@@ -78,12 +100,14 @@ public class HomeControlManager : MonoBehaviour{
     {
         Debug.Log("Click Event");
         FocusedObject.OnClick();
+        AutoUIDisappearTimer = AutoUIDisappearTime;
     }
 
     public void InputEvent_Move(Vector2 _dir)
     {
         Debug.Log("Move Event Called: " + _dir);
         FocusedObject.ChangeToLinkedObject(_dir);
+        AutoUIDisappearTimer = AutoUIDisappearTime;
     }
 }
 
