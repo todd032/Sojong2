@@ -143,6 +143,7 @@ public class SpaceManager {
             spaceobj.SpaceType = SpaceType.FREE;
         }
     }
+        
 }
 
 public enum SpaceType

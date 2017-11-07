@@ -11,44 +11,50 @@ public class InteractableObject : MonoBehaviour {
 
     private void Awake()
     {
+        StartSize = transform.localScale;
         InteractableManager.Instance.AddToList(this);
         if(gameObject.active )
         {
             InteractableManager.Instance.SetToActive(this);
         }
     }
-
+    
     // Use this for initialization
     void Start () {
-        StartSize = transform.localScale;
-
+        
+        SetFocus(Focused);
     }
 	
 	// Update is called once per frame
 	void Update () {
-        if (FocusedObject.active != Focused)
-        {
-            FocusedObject.SetActive(Focused);
-            if(Focused)
-            {
-                FocusedObject.GetComponent<ParticleSystem>().Play();                
-            }
 
-            if (Shrink) {
-                if (!Focused) {
-                    transform.localScale = StartSize * 0.8f;
-                }
-                else {
-                    transform.localScale = StartSize;
-                }
+    }
+
+    public virtual void SetFocus(bool _flag)
+    {
+        Focused = _flag;
+        FocusedObject.SetActive(Focused);
+        if (Focused)
+        {
+            FocusedObject.GetComponent<ParticleSystem>().Play();
+        }
+
+        if (Shrink)
+        {
+            if (!Focused)
+            {
+                transform.localScale = StartSize * 0.5f;
+            }
+            else
+            {
+                transform.localScale = StartSize;
             }
         }
     }
-
     private void OnEnable()
     {
         InteractableManager.Instance.SetToActive(this);
-        Debug.Log("Hello?");
+        //Debug.Log("Hello?");
     }
 
     private void OnDisable()
@@ -83,14 +89,14 @@ public class InteractableObject : MonoBehaviour {
             InteractableObject linkedobj = LinkedObject[iter];
 
             Vector2 deltadir = linkedobj.transform.position - transform.position;
-            float curangle = Constant.GetAngle(Vector2.right, deltadir);
-            float deltaangle = Mathf.Abs(targetangle - curangle);
-            if(deltaangle < minangle && deltaangle < 90f)
+            float curangle = Vector2.Angle(_input, deltadir);
+            float deltaangle = curangle;
+            if(deltaangle < minangle && deltaangle < 45f)
             {
                 minangle = deltaangle;
                 minindex = iter;
             }
-        }
+        }   
 
         if(minindex != -1)
         {

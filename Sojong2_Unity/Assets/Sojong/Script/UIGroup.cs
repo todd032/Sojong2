@@ -5,7 +5,8 @@ using UnityEngine;
 public class UIGroup : MonoBehaviour {
 
     public int UIGroupId;
-   
+    public List<InteractableObject> UIList = new List<InteractableObject>();
+
     void Awake()
     {
         UIManager.Instance.AddUIGroup(this);

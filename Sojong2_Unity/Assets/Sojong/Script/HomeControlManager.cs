@@ -58,7 +58,7 @@ public class HomeControlManager : MonoBehaviour{
             {
                 InteractableManager.Instance.UpdateObjectsLink();
                 FocusedObject = InteractableManager.Instance.ActiveObjectList[0];
-                FocusedObject.Focused = true;
+                FocusedObject.SetFocus(true);
                 InteractableManager.Instance.ShowCurrentSelectedUI(FocusedObject);
             }
         }
@@ -68,12 +68,12 @@ public class HomeControlManager : MonoBehaviour{
                 UIManager.Instance.HideAll();
                 //check if focused object is inactive
                 if(!FocusedObject.gameObject.active) {
-                    FocusedObject.Focused = false;
+                    FocusedObject.SetFocus(false);
                     FocusedObject = null;
                     if (InteractableManager.Instance.ActiveObjectList.Count != 0) {
                         InteractableManager.Instance.UpdateObjectsLink();
                         FocusedObject = InteractableManager.Instance.ActiveObjectList[0];
-                        FocusedObject.Focused = true;
+                        FocusedObject.SetFocus(true);
                         InteractableManager.Instance.ShowCurrentSelectedUI(FocusedObject);
                     }
                 }
@@ -89,26 +89,36 @@ public class HomeControlManager : MonoBehaviour{
 
     public void ChangeFocus(InteractableObject _obj)
     {
-        Debug.Log("Change focus called");
-        FocusedObject.Focused = false;
+        //Debug.Log("Change focus called");
+        if (FocusedObject != null)
+        {
+            FocusedObject.SetFocus(false);
+        }
         FocusedObject = _obj;
-        FocusedObject.Focused = true;
+        FocusedObject.SetFocus(true);
         InteractableManager.Instance.ShowCurrentSelectedUI(FocusedObject);
     }
 
     public void InputEvent_Click()
     {
-        Debug.Log("Click Event");
-        FocusedObject.OnClick();
-        AutoUIDisappearTimer = AutoUIDisappearTime;
+        //Debug.Log("Click Event");
+        if (FocusedObject != null)
+        {
+            FocusedObject.OnClick();
+            AutoUIDisappearTimer = AutoUIDisappearTime;
+        }
     }
 
     public void InputEvent_Move(Vector2 _dir)
     {
-        Debug.Log("Move Event Called: " + _dir);
-        FocusedObject.ChangeToLinkedObject(_dir);
-        AutoUIDisappearTimer = AutoUIDisappearTime;
+        Debug.Log("Move Event Called DIR: " + _dir + " ANGLE: " + Constant.GetAngle(Vector2.right, _dir));
+        if (FocusedObject != null)
+        {
+            FocusedObject.ChangeToLinkedObject(_dir);
+            AutoUIDisappearTimer = AutoUIDisappearTime;
+        }
     }
+    
 }
 
 public enum HomeControlState
