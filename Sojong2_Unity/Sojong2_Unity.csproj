@@ -250,6 +250,8 @@
     <Compile Include="Assets\Sojong\Script\InteractableObject_TestObject.cs" />
     <Compile Include="Assets\Sojong\Script\InteractableObject_UILoader.cs" />
     <Compile Include="Assets\Sojong\Script\LinkLineObject.cs" />
+    <Compile Include="Assets\Sojong\Script\NetworkClientTest.cs" />
+    <Compile Include="Assets\Sojong\Script\NetworkManager.cs" />
     <Compile Include="Assets\Sojong\Script\SpaceManager.cs" />
     <Compile Include="Assets\Sojong\Script\SpaceObject.cs" />
     <Compile Include="Assets\Sojong\Script\SpaceObjectFromImage.cs" />

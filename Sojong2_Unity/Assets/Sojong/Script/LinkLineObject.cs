@@ -32,5 +32,6 @@ public class LinkLineObject : MonoBehaviour {
 
         ParticleSystem.ShapeModule shape = MyParticle.shape;
         shape.radius = distance / 2f;
+        
     }
 }
