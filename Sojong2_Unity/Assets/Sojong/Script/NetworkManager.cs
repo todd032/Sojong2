@@ -113,7 +113,9 @@ public class NetworkManager : MonoBehaviour {
         // 수신받은 자료의 크기가 1 이상일 때에만 자료 처리
         if (recvBytes > 0)
         {
-            Debug.Log("메세지 받음: " + Encoding.Unicode.GetString(ao.Buffer));
+            string messagestring = Encoding.Unicode.GetString(ao.Buffer);
+            Debug.Log("메세지 받음: " + messagestring);
+            //NetworkMessage message = JsonUtility.FromJson<NetworkMessage>(messagestring);
         }
 
         // 자료 처리가 끝났으면~
@@ -137,3 +139,8 @@ public class NetworkManager : MonoBehaviour {
 
 }
 
+public class NetworkMessage {
+    public int Frame;
+    public float X;
+    public float Y;
+}
