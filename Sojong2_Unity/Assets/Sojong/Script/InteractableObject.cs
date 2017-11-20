@@ -6,9 +6,10 @@ public class InteractableObject : MonoBehaviour {
 
     public bool Focused = false;
     public bool Shrink = false;
+    public float ShrinkFactor = 0.8f;
     protected Vector3 StartSize;
     public GameObject FocusedObject;
-
+    
     private void Awake()
     {
         StartSize = transform.localScale;
@@ -43,7 +44,7 @@ public class InteractableObject : MonoBehaviour {
         {
             if (!Focused)
             {
-                transform.localScale = StartSize * 0.5f;
+                transform.localScale = StartSize * ShrinkFactor;
             }
             else
             {
@@ -106,7 +107,7 @@ public class InteractableObject : MonoBehaviour {
 
     protected IEnumerator BumpAnim()
     {
-        Vector3 startscale = transform.localScale;
+        Vector3 startscale = StartSize;
 
         float timer = 0f;
         float sinval = 0f;
@@ -118,8 +119,19 @@ public class InteractableObject : MonoBehaviour {
             yield return null;
         }
 
-        transform.localScale = startscale;
-        
+        if(Focused)
+        { 
+            transform.localScale = StartSize;
+        }else
+        {
+            if(Shrink)
+            {
+                transform.localScale = StartSize * ShrinkFactor;
+            }else
+            {
+                transform.localScale = StartSize;
+            }
+        }
         yield return null;
     }
 }

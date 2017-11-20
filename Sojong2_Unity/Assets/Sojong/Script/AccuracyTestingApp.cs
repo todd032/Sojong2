@@ -1,5 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
+
 using UnityEngine;
 
 public class AccuracyTestingApp : MonoBehaviour {
@@ -22,10 +25,61 @@ public class AccuracyTestingApp : MonoBehaviour {
         CreateStage();
     }
 
+    private void Update()
+    {
+        ClearTimer += Time.deltaTime;
+
+        if(Input.GetKeyDown(KeyCode.Space))
+        {
+            SaveTestData();
+        }
+    }
+
+    //public string SaveFileName = "Result.txt";
+    public List<TestData> TestDataList = new List<TestData>();
+    public void SaveTestData()
+    {
+        string path = Application.dataPath + "/";
+        string csv = "";
+        
+        if(!File.Exists(path + "Case1_Result.txt"))
+        {
+            File.WriteAllText(path + "Case1_Result.csv", " Case 1, Success, Response");
+        }
+
+        if (!File.Exists(path + "Case2_Result.txt"))
+        {
+            File.WriteAllText(path + "Case2_Result.csv", " Case 2, Success, Response");
+        }
+
+        if (!File.Exists(path + "Case3_Result.txt"))
+        {
+            File.WriteAllText(path + "Case3_Result.csv", " Case 3, Success, Response");
+        }
+
+        if (!File.Exists(path + "Case4_Result.txt"))
+        {
+            File.WriteAllText(path + "Case4_Result.csv", " Case 4, Success, Response");
+        }
+
+        for(int iter = 0; iter < TestDataList.Count; iter++)
+        {
+            TestData curdata = TestDataList[iter];
+            string savefile = path + "Case" + (curdata.Case + 1).ToString() + "_Result.csv";
+            string data = "\n," + (curdata.Success ? 1 : 0) + "," + curdata.ResponseTime.ToString() + "";
+            File.AppendAllText(savefile, data);
+        }
+        TestDataList.Clear();
+
+        Debug.Log("Data Saved");
+    }
+    
     public int TestPerCase = 10;
     public int Stage = 0;
+    public float ClearTimer = 0;
     public void CreateStage()
     {
+        ClearTimer = 0f;
         InputManager.Instance.CurVelocity = Vector2.zero;
         if(Stage < 1 * TestPerCase)
         {
@@ -43,7 +97,7 @@ public class AccuracyTestingApp : MonoBehaviour {
         
         HomeControlManager.Instance.ChangeFocus(TestObjectList[0]);
         HomeControlManager.Instance.UIChangeEvent();
-        Stage++;
+        Stage = (Stage + 1) % 40;
     }
     
 
@@ -129,6 +183,12 @@ public class AccuracyTestingApp : MonoBehaviour {
 
     protected IEnumerator StageCompleteAnim(bool _success)
     {
+        TestData newtestdata = new TestData();
+        newtestdata.Case = (Stage - 1) / TestPerCase;
+        newtestdata.Success = _success; ;
+        newtestdata.ResponseTime = ClearTimer;
+        TestDataList.Add(newtestdata);
+
         InputManager.Instance.gameObject.SetActive(false);
         if(_success)
         {
@@ -139,11 +199,18 @@ public class AccuracyTestingApp : MonoBehaviour {
         }
 
         yield return new WaitForSeconds(0.5f);
-
+        
         Success.gameObject.SetActive(false);
         Fail.gameObject.SetActive(false);
         InputManager.Instance.gameObject.SetActive(true);
         CreateStage();
         yield return null;
     }
+}
+
+public class TestData
+{
+    public int Case;
+    public bool Success;
+    public float ResponseTime;
 }

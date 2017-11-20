@@ -34,6 +34,7 @@ namespace KinectHandTracking
         float prev_x = 0;
         float prev_y = 0;
         int frameNum = 0;
+        bool handIsPrevTracked = false;
         //string state = "-";
         //float threshold = 0.02f;
 
@@ -65,9 +66,9 @@ namespace KinectHandTracking
         public MainWindow()
         {
             InitializeComponent();
-            sck = new Socket(AddressFamily.InterNetwork, SocketType.Stream,ProtocolType.Tcp );
-            localEndPoint = new IPEndPoint(IPAddress.Parse("58.121.61.90"), 1234);
-
+            sck = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            //localEndPoint = new IPEndPoint(IPAddress.Parse("58.121.61.90"), 1234);
+            localEndPoint = new IPEndPoint(IPAddress.Parse("58.232.166.114"), 1234);
             outputter = new TextBoxOutputter(TestBox);
             Console.SetOut(outputter);
             Console.WriteLine("Started");
@@ -144,6 +145,7 @@ namespace KinectHandTracking
                     {
                         if (body != null)
                         {
+                            Message msg;
                             if (body.IsTracked)
                             {
                                 // Find the joints
@@ -156,7 +158,7 @@ namespace KinectHandTracking
                                 Joint elbowLeft = body.Joints[JointType.ElbowLeft];
                                 Joint elbowRight = body.Joints[JointType.ElbowRight];
 
-                                
+
                                 CameraSpacePoint handRightPosition;
                                 string hRight;
                                 if (handRight.TrackingState == TrackingState.Tracked)
@@ -165,109 +167,63 @@ namespace KinectHandTracking
                                     hRight = "(" + handRightPosition.X + ",\n" + handRightPosition.Y + ",\n" + handRightPosition.Z + ")";
                                     tblRightHand.Text = hRight;
                                 }
-                                
+
                                 //Event triggered 되기까지 누적된 변화량
-                                x_variation += (handRight.Position.X-prev_x);
-                                y_variation += (handRight.Position.Y-prev_y);
+                                x_variation += (handRight.Position.X - prev_x);
+                                y_variation += (handRight.Position.Y - prev_y);
 
-                                //Console.Write("Enter Text: ");
-                                //string text = Console.ReadLine();
 
-                                Message msg;
-                                if(body.HandRightState == HandState.Closed )
-                                    msg = new Message(frameNum, handRight.Position.X - prev_x, handRight.Position.Y - prev_y, true);
-                                else
-                                    msg = new Message(frameNum, handRight.Position.X - prev_x, handRight.Position.Y - prev_y, false);
-
-                                string json = JsonConvert.SerializeObject(msg);
-
-                                try
+                                if (handRight.TrackingState == TrackingState.Tracked)
                                 {
-                                    if (sck != null)
+                                    if (handIsPrevTracked)
                                     {
-                                        sck.Send(Encoding.Unicode.GetBytes(json));
-                                        Console.Write("Data Sent!\r\n");
+                                        if (body.HandRightState == HandState.Closed)
+                                            msg = new Message(frameNum, handRight.Position.X - prev_x, handRight.Position.Y - prev_y, true);
+                                        else
+                                            msg = new Message(frameNum, handRight.Position.X - prev_x, handRight.Position.Y - prev_y, false);
                                     }
+                                    else
+                                    {
+                                        msg = new Message(frameNum, 0, 0, false);
+                                        handIsPrevTracked = true;
+                                    }
+
+                                    prev_x = handRight.Position.X;
+                                    prev_y = handRight.Position.Y;
                                 }
-                                catch
+                                else
                                 {
-                                    Console.Write("Unable to send data!\r\n");
+                                    msg = new Message(frameNum, 0, 0, false);
+                                    handIsPrevTracked = false;
                                 }
-
-                                frameNum++;
-                                prev_x = handRight.Position.X;
-                                prev_y = handRight.Position.Y;
-
-                                //if (y_variation >= threshold)
-                                //{
-                                //    if (x_variation >= threshold)
-                                //    {
-                                //        state = "up-right";
-                                //        x_variation = 0;
-                                //    }
-                                //    else if (x_variation > -threshold)
-                                //    {
-                                //        state = "up";
-                                //    }
-                                //    else
-                                //    {
-                                //        state = "up-left";
-                                //        x_variation = 0;
-                                //    }
-                                //    y_variation = 0;
-                                //}
-                                //else if (y_variation > -threshold)
-                                //{
-                                //    if (x_variation >= threshold)
-                                //    {
-                                //        state = "right";
-                                //        x_variation = 0;
-                                //    }
-                                //    else if (x_variation > -threshold)
-                                //    {
-                                //        if (body.HandRightState == HandState.Closed)
-                                //        {
-                                //            state = "clicked!";
-                                //            x_variation = 0;
-                                //            y_variation = 0;
-                                //        }
-                                //        else
-                                //        {
-                                //            state = "-";
-                                //        }
-                                //    }
-                                //    else
-                                //    {
-                                //        state = "left";
-                                //        x_variation = 0;
-                                //    }
-                                //}
-                                //else
-                                //{
-                                //    if (x_variation >= threshold)
-                                //    {
-                                //        state = "down-right";
-                                //        x_variation = 0;
-                                //    }
-                                //    else if (x_variation > -threshold)
-                                //    {
-                                //        state = "down";
-                                //    }
-                                //    else
-                                //    {
-                                //        state = "down-left";
-                                //        x_variation = 0;
-                                //    }
-                                //    y_variation = 0;
-                                //}
-
-                                //tblState.Text = state;
-
 
                                 canvas.DrawThumb(elbowRight, _sensor.CoordinateMapper);
                                 canvas.DrawThumb(handRight, _sensor.CoordinateMapper);
-                               
                             }
+                            else
+                            {
+                                msg = new Message(frameNum, 0, 0, false);
+                                handIsPrevTracked = false;
+                            }
+
+                            string json = JsonConvert.SerializeObject(msg);
+
+
+                            /* Scocket Communication Part*/
+                            try
+                            {
+                                if (sck != null)
+                                {
+                                    sck.Send(Encoding.Unicode.GetBytes(json));
+                                    Console.Write("Data Sent!\r\n");
+                                }
+                            }
+                            catch
+                            {
+                                Console.Write("Unable to send data!\r\n");
+                            }
+
+                            frameNum++;
                         }
                     }
                 }

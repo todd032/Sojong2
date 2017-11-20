@@ -16,11 +16,20 @@ public class InputManager : MonoBehaviour {
             return instance;
         }
     }
-    
+
+    private void Awake()
+    {
+        if(instance == null)
+        {
+            instance = this;
+        }
+    }
+
     private void Update()
     {
         //UpdateInputByTimeLimit();
-        UpdateInputByVelocity();
+        //UpdateInputByVelocity();
+        UpdateNetworkInput();
     }
 
     public int InputDataMax = 5;
@@ -106,7 +115,79 @@ public class InputManager : MonoBehaviour {
         PrevInputData = newdata;
     }
 
-    private void OnDrawGizmosSelected()
+    public float MaxChange = 0.1f;
+    protected NetworkMessage PrevMessage;
+    protected List<NetworkMessage> ProcessMessageList = new List<NetworkMessage>();
+    protected Queue<NetworkMessage> MessageQueue = new Queue<NetworkMessage>();
+    public void Addinput(NetworkMessage _message)
+    {
+        MessageQueue.Enqueue(_message);
+    }
+
+    protected void UpdateNetworkInput()
+    {
+        ProcessMessageList.Clear();
+        int messagecount = MessageQueue.Count;
+        for (int iter = 0; iter < messagecount; iter++)
+        {
+            ProcessMessageList.Add(MessageQueue.Dequeue());
+        }
+
+        if (messagecount > 0)
+        {
+            CurVelocity *= VelocityReducerByFrame;
+        }
+
+        bool clickedinloop = false;
+        for (int iter = 0; iter < ProcessMessageList.Count; iter++)
+        {
+            NetworkMessage _message = ProcessMessageList[iter];
+
+
+            //InputData newdata = new InputData();
+            //newdata.AbsolutePos = _message.;
+            //if (PrevInputData != null)
+            //{
+            //    CurVelocity += (newdata.AbsolutePos - PrevInputData.AbsolutePos);
+            //}
+            Vector2 input = new Vector2(_message.X, _message.Y);
+            if(input.magnitude > MaxChange)
+            {
+                input = input.normalized * MaxChange;
+                Debug.Log("Input max change caught");
+            }
+            CurVelocity += input;
+
+            //if (Input.GetMouseButtonDown(0))
+            if (!clickedinloop && PrevMessage != null && !PrevMessage.isClicked && _message.isClicked)
+            {
+                clickedinloop = true;
+                HomeControlManager.Instance.InputEvent_Click();
+            }
+            else
+            {
+                if (MoveEventDelayTimer > 0f)
+                {
+                    MoveEventDelayTimer -= Time.deltaTime;
+                }
+                else
+                {
+                    if (CurVelocity.magnitude > VelocityThreshold)
+                    {
+                        MoveEventDelayTimer = MoveEventDelayTime;
+                        HomeControlManager.Instance.InputEvent_Move(CurVelocity);
+                        CurVelocity *= VelocityReducerByEvent;
+                        Debug.Log("Move called: " + CurVelocity);
+                    }
+                }
+            }
+
+            // PrevInputData = newdata;
+            PrevMessage = _message;
+        }
+    }
+    
+private void OnDrawGizmosSelected()
     {
         if (HomeControlManager.Instance.FocusedObject != null)
         {

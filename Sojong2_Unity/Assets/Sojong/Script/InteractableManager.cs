@@ -87,7 +87,7 @@ public class InteractableManager : MonoBehaviour {
                         float curdist = DistList[distiter];
                         if(distance < curdist)
                         {
-                            Debug.Log("Dist: " + distance + " curdist: " + curdist);
+                            //Debug.Log("Dist: " + distance + " curdist: " + curdist);
                             added = true;
                             DistList.Insert(distiter, distance);
                             ObjectByDistance.Insert(distiter, newobj);
@@ -115,7 +115,7 @@ public class InteractableManager : MonoBehaviour {
                 //comp if there are no interruption between two objs
                 RaycastHit2D[] hits = Physics2D.RaycastAll(curobj.transform.position, dir, DistList[distiter], LayerMask.GetMask(new string[] { "UIObject" }));
 
-                Debug.Log("Hits count: " + hits.Length);
+                //Debug.Log("Hits count: " + hits.Length);
                 bool notfoundanybetween = true;
                 foreach(RaycastHit2D hit in hits)
                 {

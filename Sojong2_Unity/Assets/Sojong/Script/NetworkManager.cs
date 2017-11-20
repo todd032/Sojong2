@@ -113,11 +113,18 @@ public class NetworkManager : MonoBehaviour {
         // 수신받은 자료의 크기가 1 이상일 때에만 자료 처리
         if (recvBytes > 0)
         {
+            
             string messagestring = Encoding.Unicode.GetString(ao.Buffer);
-            Debug.Log("메세지 받음: " + messagestring);
-            //NetworkMessage message = JsonUtility.FromJson<NetworkMessage>(messagestring);
+            Debug.Log("메세지 받음: " + messagestring);            
+            
+            NetworkMessage message = JsonUtility.FromJson<NetworkMessage>(messagestring);
+            if (InputManager.Instance != null)
+            {
+            
+                InputManager.Instance.Addinput(message);
+            }
         }
-
+        ao.Buffer = new byte[4096];
         // 자료 처리가 끝났으면~
         // 이제 다시 데이터를 수신받기 위해서 수신 대기를 해야 합니다.
         // Begin~~ 메서드를 이용해 비동기적으로 작업을 대기했다면
@@ -143,4 +150,5 @@ public class NetworkMessage {
     public int Frame;
     public float X;
     public float Y;
+    public bool isClicked;
 }
